@@ -1,0 +1,67 @@
+# Aula Criando um portscan em Python com Scapy
+
+Usar o script na linha de comando:
+dar permissão no script usando `chmod +x endpunkt.py`
+usar o script `./endpunkt.py <HOST> <verbose=1,s/verbose=0>`
+
+`sr1()` pega somente uma resposta de envio
+`sr()` pega todas as respostas de envio - recomendado para várias portas
+- Curiosidade do sr() é que ele pega duas saídas (com respostas e sem respostas) para usar o sr() com o máximo proveito
+é bom utilizarmos duas variáveis (ex: resposta, semresposta = sr(pacote)) e depois usar a saída de resposta (resp.show()) e a saída será somente a resposta
+
+# Usando a biblioteca do **scapy** no python
+`from scapy.all import *`
+
+# Modificando os pacotes 
+```python
+pIP = IP(dst="IP")
+pTCP = TCP(dport=80, flags="S") #dport (Destination Port)
+pacote = pIP/pTCP
+resposta = sr1(pacote)
+```
+
+Se caso quiser omitir a informação do envio de pacote pode usar o comando e ter uma saída mais limpa
+`conf.verb = 0`
+
+# Melhorando o script 
+
+Usando argumentos
+```python
+#!/usr/bin/python3
+
+import sys
+from scapy.all import *
+
+#Lista de portas para serem testadas
+ports = [21,22,23,25,80,443,110,8000,8080]
+
+# Caso quiser o modo verbose 1 ou não 0, passar como 2 argumento no script
+# conf.verb = sys.argv[2]
+
+pIP = IP(dst=sys.argv[1])
+pTCP = TCP(dport=portas, flags="S")
+packet = pIP/pTCP
+
+resp, noresp= sr(packet)
+
+# Selecionar qual a resposta
+#Caso queira selecionar o primeiro pacote de envio, sempre começa em 0 (primeiro pacote) e sucessivamente
+#print(resp[0][1].show()) # o [1] ele significa que é pacote de resposta e o [0] pacote de envio
+
+#e também da para selecionar um campo específico:
+#print(resp[0][1][TCP].sport) -> sport (Source Port)
+
+#O sport é um exemplo, mas é possível escolher as "flags" entre outras opções dentro de um pacote TCP
+
+# Criando um for para ler todas as respostas e trazer o status de cada port
+for resposta in resp:
+  port_for = resposta[1][TCP].sport
+  flags_for = resposta[1][TCP].flags
+  print(f"{port_for} {flags_for}")
+
+  if(flag == "SA")
+    print(f"Porta {port_for} aberta")
+```
+
+
+
